@@ -1,11 +1,11 @@
 #!name=AgentRouter 自动签到
-#!desc=AgentRouter 每日自动签到（账号密码登录即完成签到），支持多账号、额度查询、签到日志核验与结果通知。无需 MITM、无需抓 Cookie。首次使用：点模块右侧「编辑参数」，在 ACCOUNT 填 邮箱#密码，或在 BoxJS 写入 AGENTROUTER_ACCOUNT / AGENTROUTER_ACCOUNTS。
+#!desc=AgentRouter 每日自动签到（账号密码登录即完成签到），支持多账号、额度查询、签到日志核验与结果通知。无需 MITM、无需抓 Cookie。首次使用：点模块右侧「编辑参数」，把 ACCOUNT 里的「未配置」替换成 邮箱#密码；也可以改在 BoxJS 里写 AGENTROUTER_ACCOUNT / AGENTROUTER_ACCOUNTS。
 #!author=Suk1u（Surge 模块）/ ddgksf2013（原脚本）
 #!homepage=https://github.com/Suk1u/AgentRoute
 #!icon=https://github.com/Suk1u.png
 #!category=签到
-#!arguments=TIME:0 9 * * *,TASK_NAME:AgentRouter 签到,ACCOUNT,ACCOUNTS,POLICY,VERIFY_LOG:true,TIMEOUT:20,BASE_URL:agentrouter.org,NOTIFY:true
-#!arguments-desc=【TIME】定时时间，cron 表达式，默认每天 09:00。\n【TASK_NAME】定时任务名，一般无需修改。\n【ACCOUNT】单账号，格式 邮箱#密码。\n【ACCOUNTS】多账号，用分号分隔，格式 [名称|]邮箱#密码。\n【POLICY】出站策略或策略组，留空表示按分流规则。\n【VERIFY_LOG】登录后是否再核验签到日志，true/false。\n【TIMEOUT】单次请求超时秒数。\n【BASE_URL】接口域名，只填域名如 agentrouter.org，不要带 https://。\n【NOTIFY】是否发送结果通知，true/false。
+#!arguments=TIME:0 9 * * *,TASK_NAME:AgentRouter 签到,ACCOUNT:未配置,ACCOUNTS:未配置,POLICY:未配置,VERIFY_LOG:true,TIMEOUT:20,BASE_URL:agentrouter.org,NOTIFY:true
+#!arguments-desc=【TIME】定时时间，cron 表达式，默认每天 09:00。\n【TASK_NAME】定时任务名，一般无需修改。\n【ACCOUNT】单账号，把「未配置」替换为 邮箱#密码。\n【ACCOUNTS】多账号，把「未配置」替换为 名称|邮箱#密码;名称|邮箱#密码。\n【POLICY】出站策略或策略组，保持「未配置」表示按分流规则。\n【VERIFY_LOG】登录后是否再核验签到日志，true/false。\n【TIMEOUT】单次请求超时秒数。\n【BASE_URL】接口域名，只填域名如 agentrouter.org，不要带 https://。\n【NOTIFY】是否发送结果通知，true/false。\n注：所有参数都必须有值，留空会导致模块无法加载，不需要的参数请保留默认值。
 
 [Script]
 # 定时签到。把 TASK_NAME 的值改成单个井号字符，整行就会变成注释，即可关闭定时签到。

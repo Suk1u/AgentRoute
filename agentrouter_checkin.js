@@ -18,9 +18,11 @@
  *     verifyLog / AGENTROUTER_VERIFY_LOG     登录后是否再核验签到日志，默认 true
  *     notify    / AGENTROUTER_NOTIFY         是否发送通知，默认 true
  *
- * 注意：Surge 模块参数名只能由字母、数字、下划线组成，且默认值可选。
- *       模块里未填写的参数（ACCOUNT / ACCOUNTS / POLICY）会解析为空字符串，
- *       脚本把空值以及「未配置 / 无 / - / none」等占位值统一当作未设置处理。
+ * 注意：Surge 对模块参数有两条互相夹击的约束——
+ *       ① 默认值不能为空（写成 `NAME:` 会报「参数声明格式错误」）；
+ *       ② 每个声明的参数又必须有值（裸写 `NAME` 会报「The value of argument "NAME" is not found」）。
+ *       所以 ACCOUNT / ACCOUNTS / POLICY 只能用一个非空占位默认值「未配置」。
+ *       脚本把「未配置 / 无 / - / none」等占位值、空字符串、以及未被替换的 {{{X}}} 一律当作未设置。
  *
  * 安全提示：账号密码只会发送到 baseUrl 指定的站点，脚本不会外传，也不会写入日志。
  *
