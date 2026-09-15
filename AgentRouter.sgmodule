@@ -1,15 +1,17 @@
 #!name=AgentRouter 自动签到
-#!desc=AgentRouter 每日自动签到（账号密码登录即完成签到），支持多账号、额度查询、签到日志核验与结果通知。无需 MITM、无需抓 Cookie。首次使用：点模块右侧「编辑参数」，在【账号】填 邮箱#密码，或在 BoxJS 写入 AGENTROUTER_ACCOUNT / AGENTROUTER_ACCOUNTS。
+#!desc=AgentRouter 每日自动签到（账号密码登录即完成签到），支持多账号、额度查询、签到日志核验与结果通知。无需 MITM、无需抓 Cookie。首次使用：点模块右侧「编辑参数」，在 ACCOUNT 填 邮箱#密码，或在 BoxJS 写入 AGENTROUTER_ACCOUNT / AGENTROUTER_ACCOUNTS。
 #!author=Suk1u（Surge 模块）/ ddgksf2013（原脚本）
 #!homepage=https://github.com/Suk1u/AgentRoute
 #!icon=https://github.com/Suk1u.png
 #!category=签到
-#!arguments=定时时间:0 9 * * *,定时任务:AgentRouter 签到,账号:,多账号:,策略:DIRECT,日志核验:true,请求超时:20,基础域名:https://agentrouter.org,通知:true
-#!arguments-desc=【定时时间】cron 表达式 默认每天 09:00\n【定时任务】设为 # 可关闭定时签到\n【账号】单账号 格式 邮箱#密码\n【多账号】用 ; 分隔 格式 [名称|]邮箱#密码 例 甲|a@x.com#pwdA;b@x.com#pwdB\n【策略】出站策略或策略组 留空按分流规则\n【日志核验】登录后是否再查签到日志 true/false\n【请求超时】单次请求超时秒数\n【基础域名】接口域名 一般无需修改\n【通知】是否发送结果通知 true/false
+#!arguments=TIME:0 9 * * *,TASK_NAME:AgentRouter 签到,ACCOUNT,ACCOUNTS,POLICY,VERIFY_LOG:true,TIMEOUT:20,BASE_URL:agentrouter.org,NOTIFY:true
+#!arguments-desc=【TIME】定时时间，cron 表达式，默认每天 09:00。\n【TASK_NAME】定时任务名，一般无需修改。\n【ACCOUNT】单账号，格式 邮箱#密码。\n【ACCOUNTS】多账号，用分号分隔，格式 [名称|]邮箱#密码。\n【POLICY】出站策略或策略组，留空表示按分流规则。\n【VERIFY_LOG】登录后是否再核验签到日志，true/false。\n【TIMEOUT】单次请求超时秒数。\n【BASE_URL】接口域名，只填域名如 agentrouter.org，不要带 https://。\n【NOTIFY】是否发送结果通知，true/false。
 
 [Script]
+# 定时签到。把 TASK_NAME 的值改成单个井号字符，整行就会变成注释，即可关闭定时签到。
+# 账号密码只填在模块参数或 BoxJS 里，本文件本身不含任何凭据。
 # 脚本走远程直链，Surge 每 24 小时检查一次更新；需要看详细日志时在行尾补 ,debug=true
-{{{定时任务}}} = type=cron,cronexp="{{{定时时间}}}",script-path=https://raw.githubusercontent.com/Suk1u/AgentRoute/refs/heads/main/agentrouter_checkin.js,script-update-interval=86400,timeout=180,wake-system=true,argument="account={{{账号}}}&accounts={{{多账号}}}&policy={{{策略}}}&verifyLog={{{日志核验}}}&timeout={{{请求超时}}}&baseUrl={{{基础域名}}}&notify={{{通知}}}"
+{{{TASK_NAME}}} = type=cron,cronexp="{{{TIME}}}",script-path=https://raw.githubusercontent.com/Suk1u/AgentRoute/refs/heads/main/agentrouter_checkin.js,script-update-interval=86400,timeout=180,wake-system=true,argument="account={{{ACCOUNT}}}&accounts={{{ACCOUNTS}}}&policy={{{POLICY}}}&verifyLog={{{VERIFY_LOG}}}&timeout={{{TIMEOUT}}}&baseUrl={{{BASE_URL}}}&notify={{{NOTIFY}}}"
 
 # 若 raw.githubusercontent.com 访问不畅，把上面的 script-path 换成 jsDelivr 直链（同一份内容，国内更快）：
 # https://cdn.jsdelivr.net/gh/Suk1u/AgentRoute@main/agentrouter_checkin.js

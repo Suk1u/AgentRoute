@@ -12,11 +12,15 @@
  *   模块参数名 / 持久化键名：
  *     account   / AGENTROUTER_ACCOUNT        单账号：邮箱#密码
  *     accounts  / AGENTROUTER_ACCOUNTS       多账号：[名称|]邮箱#密码;... 或 JSON 数组
- *     baseUrl   / AGENTROUTER_BASE_URL       接口域名，默认 https://agentrouter.org
- *     policy    / AGENTROUTER_POLICY         出站策略 / 策略组，留空按分流规则
+ *     baseUrl   / AGENTROUTER_BASE_URL       接口域名，默认 agentrouter.org（会自动补 https://）
+ *     policy    / AGENTROUTER_POLICY         出站策略 / 策略组，填「未配置」表示按分流规则
  *     timeout   / AGENTROUTER_TIMEOUT        单次请求超时秒数，默认 20
  *     verifyLog / AGENTROUTER_VERIFY_LOG     登录后是否再核验签到日志，默认 true
  *     notify    / AGENTROUTER_NOTIFY         是否发送通知，默认 true
+ *
+ * 注意：Surge 模块参数名只能由字母、数字、下划线组成，且默认值可选。
+ *       模块里未填写的参数（ACCOUNT / ACCOUNTS / POLICY）会解析为空字符串，
+ *       脚本把空值以及「未配置 / 无 / - / none」等占位值统一当作未设置处理。
  *
  * 安全提示：账号密码只会发送到 baseUrl 指定的站点，脚本不会外传，也不会写入日志。
  *
@@ -100,6 +104,23 @@ function parseBool(value, fallback) {
   if (s === "1" || s === "true" || s === "yes" || s === "on") return true;
   if (s === "0" || s === "false" || s === "no" || s === "off") return false;
   return fallback;
+}
+
+/**
+ * Surge 模块参数不允许留空（会报「模块头部的参数声明格式错误」），
+ * 所以模块里用「未配置」之类的占位默认值表示"没填"，脚本按未配置处理。
+ */
+const PLACEHOLDER_VALUES = [
+  "未配置", "未设置", "未填写", "请填写", "无", "空",
+  "none", "null", "nil", "n/a", "-", "—", "?"
+];
+
+function isPlaceholder(value) {
+  const s = trim(value);
+  if (!s) return true;
+  // 占位符未被 Surge 替换时（例如参数未声明）会原样传进来，同样按未设置处理
+  if (s.indexOf("{{{") >= 0 || s.indexOf("}}}") >= 0) return true;
+  return PLACEHOLDER_VALUES.indexOf(s.toLowerCase()) >= 0;
 }
 
 function postNotify(title, body, subtitle) {
@@ -226,14 +247,16 @@ function resolveConfig() {
   const args = parseArguments(typeof $argument === "string" ? $argument : "");
 
   function pick(argKey, storeKey, fallback) {
-    if (args[argKey] !== undefined && trim(args[argKey]) !== "") return trim(args[argKey]);
+    if (args[argKey] !== undefined && !isPlaceholder(args[argKey])) return trim(args[argKey]);
     const stored = trim(readStore(storeKey));
     if (stored !== "") return stored;
     return fallback;
   }
 
-  const baseUrl = String(pick("baseUrl", "AGENTROUTER_BASE_URL", DEFAULT_CONFIG.baseUrl) ||
+  // 基础域名参数只填域名（如 agentrouter.org），这里补全协议头
+  let baseUrl = String(pick("baseUrl", "AGENTROUTER_BASE_URL", DEFAULT_CONFIG.baseUrl) ||
     "https://agentrouter.org").replace(/\/+$/, "");
+  if (baseUrl && !/^https?:\/\//i.test(baseUrl)) baseUrl = "https://" + baseUrl;
 
   const timeoutValue = Number(pick("timeout", "AGENTROUTER_TIMEOUT", String(DEFAULT_CONFIG.timeoutSeconds)));
   const timeoutSeconds = Number.isFinite(timeoutValue) && timeoutValue > 0
@@ -246,9 +269,9 @@ function resolveConfig() {
   let accounts = [];
 
   // 1) 模块参数
-  accounts = parseAccountList(args["accounts"], "模块参数 accounts");
+  accounts = parseAccountList(isPlaceholder(args["accounts"]) ? "" : args["accounts"], "模块参数 accounts");
   if (!accounts.length) {
-    const single = splitAccount(args["account"]);
+    const single = splitAccount(isPlaceholder(args["account"]) ? "" : args["account"]);
     if (single && single.email && single.password) {
       accounts = [{ name: "默认账号", email: single.email, password: single.password }];
     }
